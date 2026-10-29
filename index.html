@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2A4FD4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Foulée">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<title>Hub Foulée</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky header with segmented tabs, single centered column of sections, tables scroll in their own box */
+:root{
+  --bg:#F4F5F7; --surface:#FFFFFF; --fg:#15181D; --muted:#5D6572; --line:#E1E4E9;
+  --accent:#2A4FD4; --accent-soft:#E7ECFB; --good:#1D7F55; --warn:#A8670E;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1114; --surface:#171A1F; --fg:#E7E9ED; --muted:#99A1AD; --line:#272B33;
+  --accent:#7F9CFF; --accent-soft:#1C2440; --good:#4CC28E; --warn:#E0A44A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1114; --surface:#171A1F; --fg:#E7E9ED; --muted:#99A1AD; --line:#272B33;
+  --accent:#7F9CFF; --accent-soft:#1C2440; --good:#4CC28E; --warn:#E0A44A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding-block:12px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:24px;letter-spacing:.02em;text-transform:uppercase;display:flex;align-items:baseline;gap:8px}
+.brand small{font-family:var(--f-mono);font-size:11px;font-weight:400;color:var(--muted);letter-spacing:0;text-transform:none}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav a{font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px}
+nav a:hover{color:var(--fg)}
+nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+nav a.soon{opacity:.45;pointer-events:none}
+main .wrap{padding-block:28px 64px;display:grid;gap:28px}
+h1{font-family:var(--f-display);font-weight:600;font-size:34px;line-height:1.05;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:21px;margin:0 0 12px;letter-spacing:.01em}
+.lede{color:var(--muted);margin:6px 0 0;max-width:62ch}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.grid2>*{min-width:0}
+label{display:grid;gap:4px;font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+input,select{font:500 16px var(--f-mono);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+input:focus,select:focus,button:focus-visible,nav a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.w-s{width:110px}.w-m{width:150px}
+button{font:500 14px var(--f-body);border-radius:8px;padding:8px 14px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button:hover{border-color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:13px;padding:5px 10px;border-radius:999px}
+.big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.big b{font-family:var(--f-display);font-weight:700;font-size:64px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.big span{color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:8px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--bg);position:sticky;top:0}
+td{font-family:var(--f-mono);font-size:14px}
+th:first-child,td:first-child{text-align:left}
+td:first-child{font-family:var(--f-body);font-weight:500}
+tr:last-child td{border-bottom:0}
+tr.hl td{background:var(--accent-soft)}
+tr.goal td{box-shadow:inset 0 -2px 0 var(--good)}
+.tbl.tall{max-height:520px;overflow:auto}
+.muted{color:var(--muted)}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.pill{display:inline-block;font:500 11px var(--f-body);padding:2px 8px;border-radius:999px;background:var(--bg);color:var(--muted);border:1px solid var(--line);margin-left:6px;text-transform:uppercase;letter-spacing:.05em}
+.pill.good{color:var(--good);border-color:currentColor;background:transparent}
+.pill.warn{color:var(--warn);border-color:currentColor;background:transparent}
+.zone{font-family:var(--f-display);font-weight:600;font-size:16px}
+.refs{display:grid;gap:8px}
+.ref{display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.ref.on{border-color:var(--accent);background:var(--accent-soft)}
+.ref input{width:auto;accent-color:var(--accent)}
+.ref .v{font-family:var(--f-display);font-weight:700;font-size:22px;font-variant-numeric:tabular-nums}
+.ref .d{min-width:0}
+.ref .d div:last-child{font-size:12px;color:var(--muted)}
+.x{border:0;background:none;color:var(--muted);padding:4px 6px;font-size:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:14px}
+.stat .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat .n{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat .s{font-size:13px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:14px}
+.w-xs{width:84px}
+.steps{display:grid;gap:10px}
+.step{border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:10px;background:var(--surface)}
+.step.eff{border-left:3px solid var(--accent)}
+.step .rec{padding-top:10px;border-top:1px dashed var(--line)}
+.step-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.step-foot b{color:var(--fg);font-family:var(--f-mono);font-weight:500}
+.acts{display:flex;gap:2px}
+.acts button{border:0;background:none;color:var(--muted);padding:4px 8px;font-size:15px}
+.acts button:hover{color:var(--accent)}
+.prof{display:flex;align-items:flex-end;height:72px;gap:2px;margin-top:14px;border-bottom:1px solid var(--line)}
+.prof i{display:block;border-radius:3px 3px 0 0;min-width:2px;background:var(--line)}
+.prof i.e{background:var(--accent)}
+.sticky{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);align-self:start}
+.saved{display:grid;gap:6px;margin-top:10px}
+.saved div{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+@media (max-width:760px){.sticky{position:static}}
+@media (max-width:560px){h1{font-size:28px}.big b{font-size:52px}nav{margin-left:0}}
+@media (prefers-reduced-motion:no-preference){nav a,button{transition:background .15s,border-color .15s,color .15s}}
+
+/* ---- base (hors claude.ai) ---- */
+body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+/* ---- Parcours ---- */
+.pc{display:grid;grid-template-columns:350px minmax(0,1fr);gap:16px}
+.pc-panel{display:grid;gap:18px;align-content:start;max-height:calc(100dvh - 170px);overflow:auto}
+.pc-map{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;height:calc(100dvh - 170px);min-height:480px}
+#map{position:absolute;inset:0}
+@media (max-width:820px){.pc{grid-template-columns:1fr}.pc-map{order:-1;height:62vh;min-height:340px}.pc-panel{max-height:none}}
+#v-parcours .row{gap:8px}
+#v-parcours .row>*{flex:1 1 0;min-width:0}
+#v-parcours .row>button{flex:0 0 auto}
+#v-parcours h2{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 8px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;color:var(--muted);border-radius:7px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgb(0 0 0 / .12)}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.toggle{display:flex;align-items:center;gap:8px;font-size:14px;text-transform:none;letter-spacing:0;color:var(--fg);font-weight:400}
+.toggle input{width:auto;accent-color:var(--accent)}
+input.txt{font-family:var(--f-body)}
+button:disabled{opacity:.45;cursor:default}
+.pc .stats{grid-template-columns:repeat(3,1fr);gap:8px}
+.pc .stat{padding:10px}.pc .stat .k{font-size:11px}.pc .stat .n{font-size:26px}.pc .stat .s{font-size:12px}
+#prof{width:100%;height:90px;display:block}
+#prof text{font:10px var(--f-mono);fill:var(--muted)}
+.results{display:grid;gap:2px;margin-top:6px}
+.results button{text-align:left;border:0;padding:6px 8px;font-size:13px}
+#saved{display:grid;gap:6px}
+#saved div{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+#saved span.m{color:var(--muted);font:12px var(--f-mono)}
+#saved .acts{display:flex;gap:2px}#saved .acts button{border:0;padding:4px 6px;color:var(--muted)}
+.wp{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 1px 3px rgb(0 0 0 / .35)}
+.wp.start{background:var(--good);border-color:#fff;width:20px;height:20px}
+.wp.mini{width:9px;height:9px;border-width:2px}
+.km{font:600 10px/16px var(--f-mono);color:#fff;background:#15181D;border-radius:8px;text-align:center;min-width:16px;padding:0 3px;opacity:.85}
+.busy{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px}
+.leaflet-container{font-family:var(--f-body)}
+.toast{z-index:2000}
+
+/* ---- Garmin ---- */
+.drop{border-style:dashed}.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+details summary{cursor:pointer;color:var(--accent)}details p{margin:8px 0 0}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font:10px var(--f-mono);fill:var(--muted)}
+.chart .gl{stroke:var(--line);stroke-width:1}
+.chart .bar{fill:color-mix(in oklab,var(--accent) 60%,var(--surface))}.chart .bar.cur{fill:var(--accent)}
+.chart g[data-tip]:hover .bar{fill:var(--accent)}
+.chart .dot{fill:var(--accent);stroke:var(--surface);stroke-width:2}
+.chart .trend{fill:none;stroke:var(--fg);stroke-opacity:.55;stroke-width:2;stroke-linejoin:round}
+.zrow{display:grid;grid-template-columns:120px 1fr 44px;gap:10px;align-items:center;font-size:13px;padding:5px 0}
+.zrow b{font:500 13px var(--f-mono);text-align:right}
+.ztrack{height:10px;background:var(--bg);border-radius:5px;overflow:hidden}.ztrack i{display:block;height:100%;border-radius:5px}
+.tip{position:fixed;z-index:3000;pointer-events:none;background:var(--fg);color:var(--bg);font-size:12px;padding:6px 9px;border-radius:6px;max-width:280px}
+</style>
+
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand">Hub Foulée <small>course à pied</small></div>
+  <nav id="nav">
+    <a href="#vdot">VDOT</a><a href="#allures">Allures</a><a href="#perf">Performances</a>
+    <a href="#seances">Séances</a><a href="#parcours">Parcours</a><a href="#garmin">Garmin</a><a class="soon" title="Bientôt">Coach</a>
+  </nav>
+</div></header>
+
+<main>
+<!-- ================= VDOT ================= -->
+<section id="v-vdot" class="wrap">
+  <div><h1>Calculateur VDOT</h1><p class="lede">À partir d'une course réelle : ton VDOT, les temps équivalents sur les autres distances et tes allures d'entraînement (formules Daniels & Gilbert).</p></div>
+  <div class="panel" style="display:grid;gap:16px">
+    <div class="row">
+      <label class="w-m">Distance<select id="vd-dist"></select></label>
+      <label class="w-s" id="vd-custom-l" hidden>km<input id="vd-custom" inputmode="decimal" value="8"></label>
+      <label class="w-m">Temps<input id="vd-time" value="21:40" placeholder="h:mm:ss"></label>
+      <button class="primary" id="vd-save">Ajouter aux références</button>
+    </div>
+    <div class="chips" id="vd-chips"></div>
+    <div class="big"><b id="vd-out">–</b><span id="vd-sub"></span></div>
+  </div>
+  <div class="grid2">
+    <div><h2>Équivalences</h2><div class="tbl"><table id="vd-eq"></table></div></div>
+    <div><h2>Allures d'entraînement</h2><div class="tbl"><table id="vd-tr"></table></div>
+      <p class="note">FC indicatives en % de la FC max (Daniels). R = I moins 4 s par 400 m.</p></div>
+  </div>
+</section>
+
+<!-- ================= ALLURES ================= -->
+<section id="v-allures" class="wrap" hidden>
+  <div><h1>Allures & conversions</h1><p class="lede">Convertis min/km, min/mile et km/h, et vois le temps final sur chaque distance si l'allure est tenue.</p></div>
+  <div class="grid2">
+    <div class="panel"><h2>Convertisseur</h2>
+      <div class="row">
+        <label class="w-s">min/km<input id="cv-km" value="4:00"></label>
+        <label class="w-s">min/mile<input id="cv-mi"></label>
+        <label class="w-s">km/h<input id="cv-kmh" inputmode="decimal"></label>
+      </div>
+    </div>
+    <div class="panel"><h2>Temps cible → allure</h2>
+      <div class="row">
+        <label class="w-m">Distance<select id="tc-dist"></select></label>
+        <label class="w-s">Temps<input id="tc-time" value="19:59"></label>
+      </div>
+      <p class="note" id="tc-out"></p>
+    </div>
+  </div>
+  <div>
+    <div class="row" style="justify-content:space-between;margin-bottom:12px">
+      <h2 style="margin:0">Tableau des allures</h2>
+      <div class="row"><label class="w-s">De<input id="pt-from" value="3:00"></label><label class="w-s">À<input id="pt-to" value="6:30"></label>
+      <label class="w-s">Pas (s)<select id="pt-step"><option>5</option><option selected>10</option><option>15</option></select></label></div>
+    </div>
+    <div class="tbl tall"><table id="pt"></table></div>
+    <p class="note">Ligne surlignée : allure du convertisseur. Ligne soulignée en vert : objectif 5 km sous 20:00.</p>
+  </div>
+</section>
+
+<!-- ================= PERFORMANCES ================= -->
+<section id="v-perf" class="wrap" hidden>
+  <div><h1>VO2max & chronos probables</h1><p class="lede">Choisis la performance de référence qui reflète le mieux ton niveau actuel. Tout le reste en découle.</p></div>
+  <div class="grid2">
+    <div class="panel"><h2>Références</h2><div class="refs" id="refs"></div>
+      <p class="note">Ajoute une perf depuis l'onglet VDOT. Le seuil est converti en VDOT en supposant 88 % de VO2max.</p></div>
+    <div class="panel"><h2>Profil cardio</h2>
+      <div class="row"><label class="w-s">FC max<input id="p-max" inputmode="numeric"></label><label class="w-s">FC repos<input id="p-rest" inputmode="numeric"></label></div>
+      <div class="tbl" style="margin-top:14px"><table id="zones"></table></div>
+      <p class="note">Zones Karvonen (% de la FC de réserve).</p></div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div><h2>Chronos probables</h2><div class="tbl"><table id="pred"></table></div>
+    <p class="note">Sur 400 et 800 m, le modèle Daniels est peu fiable : il dépend surtout de ta vitesse et de ton anaérobie. Le marathon suppose un volume d'entraînement adapté.</p></div>
+</section>
+
+<!-- ================= SEANCES ================= -->
+<section id="v-seances" class="wrap" hidden>
+  <div><h1>Constructeur de séances</h1><p class="lede">Compose ta séance bloc par bloc, ciblée en allure, en FC ou en zone. La durée et la distance sont estimées à partir de ta référence VDOT (onglet Performances) : <b id="se-ref"></b>.</p></div>
+
+  <div class="panel">
+    <h2>Norwegian sub-threshold</h2>
+    <p class="note" style="margin:0 0 12px">Méthode « Sirpoc » : 2 à 3 séances par semaine juste sous le seuil (lactate ~2–3 mmol), récup courte de 60 s, tout le reste en endurance très facile + une sortie longue. La séance doit sembler contrôlée, jamais à fond.</p>
+    <div class="row" style="margin-bottom:12px"><label class="w-s">FC seuil<input id="p-thr" inputmode="numeric"></label></div>
+    <div class="tbl"><table id="ns"></table></div>
+    <p class="note">Plafonds FC indicatifs : quelques bpm sous ta FC seuil, plus bas quand les répétitions s'allongent. Si la FC dérive au-dessus, ralentis.</p>
+  </div>
+
+  <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))">
+    <div style="display:grid;gap:12px;align-content:start;min-width:0">
+      <div class="row">
+        <label style="flex:1;min-width:180px">Nom<input id="se-name" style="font-family:var(--f-body)"></label>
+        <label class="w-m">Modèle<select id="se-tpl"></select></label>
+      </div>
+      <div class="steps" id="steps"></div>
+      <div class="chips">
+        <button class="chip" data-add="warm">+ Échauffement</button><button class="chip" data-add="rep">+ Répétitions</button>
+        <button class="chip" data-add="steady">+ Bloc continu</button><button class="chip" data-add="cool">+ Retour au calme</button>
+      </div>
+    </div>
+    <div class="panel sticky">
+      <h2>Estimation</h2>
+      <div class="stats" id="se-stats" style="grid-template-columns:1fr 1fr"></div>
+      <div class="prof" id="se-prof" aria-hidden="true"></div>
+      <div class="row" style="margin-top:14px"><button class="primary" id="se-save">Enregistrer</button><button id="se-copy">Copier le résumé</button></div>
+      <div class="saved" id="se-saved"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================= GARMIN ================= -->
+<section id="v-garmin" class="wrap" hidden>
+  <div><h1>Activités Garmin</h1><p class="lede">Importe tes activités exportées de Garmin Connect pour suivre ta progression : volume, efficacité aérobie, meilleurs efforts, répartition par zones. Tout reste dans ton navigateur.</p></div>
+
+  <div class="panel drop" id="g-drop">
+    <div class="row" style="align-items:center;justify-content:space-between">
+      <div style="min-width:0"><b>Glisse tes fichiers ici</b> <span class="muted">· .fit, .zip (« Exporter l'original »), .gpx, .tcx · plusieurs à la fois</span></div>
+      <div class="row"><button class="primary" id="g-pick">Choisir des fichiers</button></div>
+    </div>
+    <input type="file" id="g-file" multiple accept=".fit,.zip,.gpx,.tcx" hidden>
+    <p class="note" id="g-status"></p>
+    <details class="note"><summary>Exporter depuis Garmin Connect</summary>
+      <p>Une activité : connect.garmin.com → Activités → ouvre l'activité → ⚙ (en haut à droite) → <b>Exporter l'original</b> (un .zip contenant le .fit). Importe le .zip tel quel.</p>
+      <p>Tout l'historique : Garmin → Compte → Paramètres de confidentialité → <b>Exporter vos données</b>. Dans l'archive reçue par e-mail, les .fit sont dans <code>DI_CONNECT/DI-Connect-Uploaded-Files</code> (des .zip, à importer directement).</p>
+      <p>La synchronisation automatique demande un serveur (Garmin n'ouvre pas son API aux sites personnels) : prévu dans une prochaine étape.</p>
+    </details>
+  </div>
+
+  <div id="g-empty" class="panel"><p class="muted" style="margin:0">Aucune activité importée pour l'instant. Les analyses apparaîtront ici après ton premier import.</p></div>
+
+  <div id="g-body" style="display:grid;gap:28px" hidden>
+    <div class="stats" id="g-stats"></div>
+    <div class="grid2">
+      <div class="panel"><h2>Volume hebdomadaire</h2><div class="chart" id="g-week"></div><p class="note">16 dernières semaines (lundi → dimanche), course uniquement.</p></div>
+      <div class="panel"><h2>Efficacité aérobie</h2><div class="chart" id="g-ef"></div><p class="note">Vitesse ÷ FC moyenne sur tes sorties faciles (m/min par battement). Si la courbe monte, tu cours plus vite pour le même effort cardiaque.</p></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h2>Temps par zone · 4 semaines</h2><div id="g-zones"></div><p class="note">Zones Karvonen de l'onglet Performances. Repère : environ 80 % en Z1–Z2.</p></div>
+      <div class="panel"><h2>Meilleurs efforts</h2><div class="tbl"><table id="g-best"></table></div><p class="note">Segments les plus rapides trouvés dans tes sorties (pauses incluses). Ce sont des minimums : une course à fond sera meilleure.</p></div>
+    </div>
+    <div>
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <h2 style="margin:0">Activités</h2>
+        <div class="row"><button id="g-coach">Copier le résumé pour le coach</button><button id="g-exp">Sauvegarde</button><button id="g-imp">Restaurer</button><button id="g-wipe">Tout effacer</button></div>
+      </div>
+      <input type="file" id="g-impf" accept=".json" hidden>
+      <div class="tbl tall"><table id="g-list"></table></div>
+    </div>
+  </div>
+  <div class="tip" id="g-tip" hidden></div>
+</section>
+
+<!-- ================= PARCOURS ================= -->
+<section id="v-parcours" class="wrap" hidden>
+  <div><h1>Parcours</h1><p class="lede">Trace un parcours ou génère une boucle à partir d'un point de départ, ajuste-le, puis exporte-le en GPX pour ta montre.</p></div>
+  <div class="pc">
+    <div class="pc-panel panel">
+
+  <div>
+    <div class="row"><label>Lieu<input id="q" class="txt" placeholder="Adresse, ville, parc…"></label><button id="go">Chercher</button><button id="me" title="Ma position">◎</button></div>
+    <div class="results" id="res"></div>
+  </div>
+
+  <div class="seg" role="group"><button id="m-trace" aria-pressed="true">Tracé</button><button id="m-loop" aria-pressed="false">Boucle auto</button></div>
+
+  <div id="p-trace" style="display:grid;gap:10px">
+    <p class="hint">Clique sur la carte pour ajouter des points. Glisse un point pour le déplacer, clique dessus pour le supprimer. Clique sur le tracé pour insérer un point.</p>
+    <label class="toggle"><input type="checkbox" id="follow" checked> Suivre le réseau</label>
+    <label>Itinéraire<select id="router"><option value="paths">Chemins & sentiers en priorité</option><option value="roads">Le plus direct (routes incluses)</option></select></label>
+    <div class="row"><button id="undo">Annuler</button><button id="close">Revenir au départ</button><button id="rev">Inverser</button><button id="clear">Effacer</button></div>
+  </div>
+
+  <div id="p-loop" style="display:grid;gap:10px" hidden>
+    <p class="hint">Choisis un départ (clic sur la carte, recherche ou ma position) et une distance. Chaque proposition est ensuite modifiable en mode Tracé.</p>
+    <label>Itinéraire<select id="router2"><option value="paths">Chemins & sentiers en priorité</option><option value="roads">Le plus direct (routes incluses)</option></select></label>
+    <div class="row"><label>Distance (km)<input id="ld" inputmode="decimal" value="10"></label><label>Départ<input id="ls" class="txt" readonly placeholder="Clique sur la carte"></label></div>
+    <div class="row"><button class="primary" id="gen">Générer une boucle</button><button id="gen2" disabled>Autre proposition</button></div>
+  </div>
+
+  <div>
+    <h2>Résumé</h2>
+    <div class="stats">
+      <div class="stat"><div class="k">Distance</div><div class="n" id="s-d">0,00</div><div class="s">km</div></div>
+      <div class="stat"><div class="k">Dénivelé</div><div class="n" id="s-e">–</div><div class="s" id="s-e2">D+ m</div></div>
+      <div class="stat"><div class="k">Temps</div><div class="n" id="s-t">–</div><div class="s"><input id="pace" placeholder="allure ?" aria-label="Allure en min/km (facultatif)" style="width:70px;padding:1px 4px;font-size:12px;display:inline-block"> /km</div></div>
+    </div>
+    <svg id="prof" viewBox="0 0 320 90" preserveAspectRatio="none" aria-label="Profil altimétrique"></svg>
+  </div>
+
+  <div style="display:grid;gap:10px">
+    <h2 style="margin:0">Enregistrer & exporter</h2>
+    <label>Nom<input id="name" class="txt" value="Mon parcours"></label>
+    <div class="row"><button class="primary" id="gpx">Exporter GPX</button><button id="save">Enregistrer</button><button id="imp">Importer GPX</button></div>
+    <input type="file" id="file" accept=".gpx,application/gpx+xml" hidden>
+    <div class="saved" id="saved"></div>
+    <p class="hint">Le routage « chemins » utilise BRouter (profil randonnée). GPX compatible Garmin Connect (Entraînement → Parcours → Importer), Strava et la plupart des montres.</p>
+  </div>
+</div>
+    <div class="pc-map"><div id="map"></div><div class="busy" id="busy" hidden>Calcul…</div></div>
+  </div>
+</section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const DIST=[
+ {k:"400",m:400,l:"400 m"},{k:"800",m:800,l:"800 m"},{k:"1000",m:1000,l:"1 km"},{k:"1500",m:1500,l:"1 500 m"},
+ {k:"mile",m:1609.344,l:"Mile"},{k:"3000",m:3000,l:"3 km"},{k:"5000",m:5000,l:"5 km"},{k:"10000",m:10000,l:"10 km"},
+ {k:"15000",m:15000,l:"15 km"},{k:"semi",m:21097.5,l:"Semi"},{k:"mara",m:42195,l:"Marathon"}];
+const PRED_KEYS=["400","800","1000","3000","5000","10000","semi","mara"];
+const RACE_KEYS=["3000","5000","10000","semi","mara"];
+const byKey=k=>DIST.find(d=>d.k===k);
+const $=id=>document.getElementById(id);
+
+/* ---------- maths ---------- */
+const vo2At=v=>-4.6+0.182258*v+0.000104*v*v;               // v en m/min
+const pctMax=t=>0.8+0.1894393*Math.exp(-0.012778*t)+0.2989558*Math.exp(-0.1932605*t); // t en min
+const vdot=(m,s)=>{const t=s/60;return vo2At(m/t)/pctMax(t)};
+const velFor=vo2=>(-0.182258+Math.sqrt(0.182258**2+4*0.000104*(vo2+4.6)))/(2*0.000104);
+function predict(m,V){let lo=m/12,hi=m/0.8;for(let i=0;i<70;i++){const mid=(lo+hi)/2;vdot(m,mid)>V?lo=mid:hi=mid}return (lo+hi)/2}
+const paceOfVO2=vo2=>60000/velFor(vo2);                     // s/km
+
+/* ---------- format ---------- */
+function parseT(str){if(str==null)return NaN;const p=String(str).trim().replace(",",".").split(":").map(Number);if(!p.length||p.some(isNaN))return NaN;return p.reduce((a,b)=>a*60+b,0)}
+function fmt(s,dec=0){if(!isFinite(s))return"–";const neg=s<0;s=Math.abs(s);const f=10**dec;s=Math.round(s*f)/f;const h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;
+ const rs=dec?r.toFixed(dec).padStart(3+dec,"0"):String(Math.round(r)).padStart(2,"0");return (neg?"−":"")+(h?`${h}:${String(m).padStart(2,"0")}:${rs}`:`${m}:${rs}`)}
+const num=(x,d=1)=>isFinite(x)?x.toFixed(d).replace(".",","):"–";
+const toast=msg=>{const t=document.createElement("div");t.className="toast";t.textContent=msg;document.body.append(t);setTimeout(()=>t.remove(),1800)};
+
+/* ---------- state ---------- */
+const KEY="hubfoulee.v1";
+const DEFAULT={fcmax:198,fcrest:43,sel:"r1",refs:[
+ {id:"r1",type:"race",m:5000,s:1300,label:"5 km",date:"oct. 2025",note:"Dernier 5 km"},
+ {id:"r2",type:"race",m:21097.5,s:6390,label:"Semi",date:"sept. 2026",note:"Pas à fond, RPE 7-8"},
+ {id:"r3",type:"seuil",pace:248,label:"Seuil Garmin 4:08/km",date:"oct. 2026",note:"181 bpm"}]};
+let S;try{S=JSON.parse(localStorage.getItem(KEY))||structuredClone(DEFAULT)}catch(e){S=structuredClone(DEFAULT)}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const refVdot=r=>r.type==="seuil"?vo2At(60000/r.pace)/0.88:vdot(r.m,r.s);
+const curRef=()=>S.refs.find(r=>r.id===S.sel)||S.refs[0];
+
+/* ---------- VDOT tab ---------- */
+const optList=sel=>{sel.innerHTML=DIST.map(d=>`<option value="${d.k}">${d.l}</option>`).join("")};
+optList($("vd-dist"));$("vd-dist").insertAdjacentHTML("beforeend",`<option value="custom">Autre…</option>`);$("vd-dist").value="5000";
+function vdInput(){const k=$("vd-dist").value;$("vd-custom-l").hidden=k!=="custom";
+ const m=k==="custom"?parseFloat($("vd-custom").value.replace(",","."))*1000:byKey(k).m;return{m,s:parseT($("vd-time").value)}}
+function trainingRows(V){
+ const mp=predict(42195,V)/42.195, I=paceOfVO2(V*0.99), fm=S.fcmax;
+ const bpm=(a,b)=>fm?`${Math.round(fm*a)}–${Math.round(fm*b)}`:"–";
+ return [
+  ["E · Endurance",`${fmt(paceOfVO2(V*0.70))} – ${fmt(paceOfVO2(V*0.62))}`,"–",bpm(.65,.79)],
+  ["M · Marathon",fmt(mp),"–",bpm(.80,.90)],
+  ["T · Seuil",fmt(paceOfVO2(V*0.88)),fmt(paceOfVO2(V*0.88)*0.4),bpm(.88,.92)],
+  ["I · Intervalles",fmt(I),fmt(I*0.4),bpm(.97,1)],
+  ["R · Répétitions",fmt(I-10),fmt(I*0.4-4),"–"]];
+}
+function renderVdot(){
+ const {m,s}=vdInput();const V=vdot(m,s);
+ if(!isFinite(V)||m<=0||s<=0){$("vd-out").textContent="–";$("vd-sub").textContent="Temps invalide (ex. 21:40 ou 1:46:30)";$("vd-eq").innerHTML="";$("vd-tr").innerHTML="";return}
+ $("vd-out").textContent=num(V);$("vd-sub").textContent=`VDOT · allure ${fmt(s/(m/1000))}/km`;
+ $("vd-eq").innerHTML=`<thead><tr><th>Distance</th><th>Temps</th><th>/km</th></tr></thead><tbody>`+
+  DIST.map(d=>{const t=predict(d.m,V);return`<tr${Math.abs(d.m-m)<1?' class="hl"':''}><td>${d.l}</td><td>${fmt(t,d.m<1600?1:0)}</td><td>${fmt(t/(d.m/1000))}</td></tr>`}).join("")+"</tbody>";
+ $("vd-tr").innerHTML=`<thead><tr><th>Type</th><th>/km</th><th>/400 m</th><th>FC</th></tr></thead><tbody>`+
+  trainingRows(V).map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("")+"</tbody>";
+}
+function renderChips(){
+ $("vd-chips").innerHTML=S.refs.filter(r=>r.type==="race").map(r=>`<button class="chip" data-id="${r.id}">${r.label} · ${fmt(r.s)}</button>`).join("")+
+  `<button class="chip" data-goal="1">Objectif 5 km · 19:59</button>`;
+}
+$("vd-chips").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.goal){$("vd-dist").value="5000";$("vd-time").value="19:59"}
+ else{const r=S.refs.find(x=>x.id===b.dataset.id);const d=DIST.find(x=>Math.abs(x.m-r.m)<1);
+  if(d){$("vd-dist").value=d.k}else{$("vd-dist").value="custom";$("vd-custom").value=String(r.m/1000).replace(".",",")}
+  $("vd-time").value=fmt(r.s)}renderVdot()});
+["vd-dist","vd-custom","vd-time"].forEach(id=>$(id).addEventListener("input",renderVdot));
+$("vd-save").addEventListener("click",()=>{const {m,s}=vdInput();if(!isFinite(vdot(m,s))){toast("Temps invalide");return}
+ const d=DIST.find(x=>Math.abs(x.m-m)<1);const id="r"+Date.now();
+ S.refs.unshift({id,type:"race",m,s,label:d?d.l:`${num(m/1000,2)} km`,date:new Date().toLocaleDateString("fr-FR",{month:"short",year:"numeric"}),note:""});
+ S.sel=id;save();renderChips();renderPerf();toast("Ajouté et choisi comme référence")});
+
+/* ---------- Allures tab ---------- */
+const MILE=1.609344;
+function setConv(src){
+ let sk;
+ if(src==="km")sk=parseT($("cv-km").value);
+ else if(src==="mi")sk=parseT($("cv-mi").value)/MILE;
+ else{const v=parseFloat($("cv-kmh").value.replace(",","."));sk=3600/v}
+ if(!isFinite(sk)||sk<=0)return;
+ if(src!=="km")$("cv-km").value=fmt(sk);
+ if(src!=="mi")$("cv-mi").value=fmt(sk*MILE);
+ if(src!=="kmh")$("cv-kmh").value=num(3600/sk,2);
+ renderPaceTable(sk);
+}
+$("cv-km").addEventListener("input",()=>setConv("km"));$("cv-mi").addEventListener("input",()=>setConv("mi"));$("cv-kmh").addEventListener("input",()=>setConv("kmh"));
+optList($("tc-dist"));$("tc-dist").value="5000";
+function renderTarget(){const d=byKey($("tc-dist").value),s=parseT($("tc-time").value);
+ if(!isFinite(s)||s<=0){$("tc-out").textContent="Temps invalide";return}
+ const p=s/(d.m/1000);$("tc-out").innerHTML=`Allure <b>${fmt(p,1)}/km</b> · ${fmt(p*MILE)}/mile · ${num(3600/p,2)} km/h · ${fmt(p*0.4,1)} au 400 m · VDOT ${num(vdot(d.m,s))}`}
+["tc-dist","tc-time"].forEach(id=>$(id).addEventListener("input",renderTarget));
+let lastSk=240;
+function renderPaceTable(sk){
+ if(sk)lastSk=sk;
+ const a=parseT($("pt-from").value),b=parseT($("pt-to").value),step=+$("pt-step").value;
+ if(!(a>0&&b>a&&(b-a)/step<400)){$("pt").innerHTML="";return}
+ const near=Math.round((lastSk-a)/step)*step+a;
+ let h=`<thead><tr><th>/km</th><th>/mile</th><th>km/h</th>${RACE_KEYS.map(k=>`<th>${byKey(k).l}</th>`).join("")}</tr></thead><tbody>`;
+ for(let p=a;p<=b+1e-9;p+=step){
+  const cls=[Math.abs(p-near)<1e-6?"hl":"",Math.abs(p-240)<1e-6?"goal":""].join(" ").trim();
+  h+=`<tr${cls?` class="${cls}"`:""}><td>${fmt(p)}</td><td>${fmt(p*MILE)}</td><td>${num(3600/p,1)}</td>${RACE_KEYS.map(k=>`<td>${fmt(p*byKey(k).m/1000)}</td>`).join("")}</tr>`}
+ $("pt").innerHTML=h+"</tbody>";
+}
+["pt-from","pt-to","pt-step"].forEach(id=>$(id).addEventListener("input",()=>renderPaceTable()));
+
+/* ---------- Performances tab ---------- */
+$("p-max").value=S.fcmax;$("p-rest").value=S.fcrest;
+["p-max","p-rest"].forEach(id=>$(id).addEventListener("input",()=>{S.fcmax=+$("p-max").value||0;S.fcrest=+$("p-rest").value||0;save();renderPerf();renderVdot()}));
+function renderPerf(){
+ $("refs").innerHTML=S.refs.map(r=>{const v=refVdot(r);return`<label class="ref${r.id===S.sel?" on":""}" style="text-transform:none;letter-spacing:0;font-size:14px;color:var(--fg)">
+  <input type="radio" name="ref" value="${r.id}"${r.id===S.sel?" checked":""}>
+  <div class="d"><div><b>${r.label}</b>${r.type==="race"?` · ${fmt(r.s)}`:""}</div><div>${r.date}${r.note?" · "+r.note:""}</div></div>
+  <span class="v">${num(v)}</span><button class="x" data-del="${r.id}" aria-label="Supprimer">×</button></label>`}).join("");
+ const r=curRef();if(!r){$("stats").innerHTML="";$("pred").innerHTML="";return}
+ const V=refVdot(r), need=vdot(5000,1199), gap=need-V, p5=predict(5000,V);
+ const uth=S.fcmax&&S.fcrest?15.3*S.fcmax/S.fcrest:NaN;
+ $("stats").innerHTML=`
+  <div class="stat"><div class="k">VO2max estimée (VDOT)</div><div class="n">${num(V)}</div><div class="s">ml/kg/min · réf. ${r.label}</div></div>
+  <div class="stat"><div class="k">Objectif 5 km &lt; 20:00</div><div class="n">${num(need)}</div><div class="s">VDOT requis · ${gap>0?`il manque <b>${num(gap)}</b>`:`<span style="color:var(--good)">atteint</span>`}</div></div>
+  <div class="stat"><div class="k">5 km prédit</div><div class="n">${fmt(p5)}</div><div class="s">${fmt(p5/5)}/km</div></div>
+  <div class="stat"><div class="k">VO2max méthode FC</div><div class="n">${num(uth)}</div><div class="s">Uth (FCmax/FCrepos) · surestime souvent</div></div>`;
+ $("pred").innerHTML=`<thead><tr><th>Distance</th><th>Temps</th><th>/km</th><th>Fiabilité</th></tr></thead><tbody>`+
+  PRED_KEYS.map(k=>{const d=byKey(k),t=predict(d.m,V);const rel=d.m<1000?'<span class="pill warn">faible</span>':d.m>30000?'<span class="pill warn">volume</span>':'<span class="pill good">bonne</span>';
+   return`<tr${k==="5000"?' class="goal"':''}><td>${d.l}</td><td>${fmt(t,d.m<1600?1:0)}</td><td>${fmt(t/(d.m/1000))}</td><td>${rel}</td></tr>`}).join("")+"</tbody>";
+ const hr=S.fcmax-S.fcrest, Z=[["Z1 · Récup",.5,.6],["Z2 · Endurance",.6,.7],["Z3 · Tempo",.7,.8],["Z4 · Seuil",.8,.9],["Z5 · VO2max",.9,1]];
+ $("zones").innerHTML=`<thead><tr><th>Zone</th><th>% réserve</th><th>bpm</th></tr></thead><tbody>`+
+  (hr>0?Z.map(z=>`<tr><td><span class="zone">${z[0]}</span></td><td>${z[1]*100}–${z[2]*100} %</td><td>${Math.round(S.fcrest+hr*z[1])}–${Math.round(S.fcrest+hr*z[2])}</td></tr>`).join(""):`<tr><td colspan="3">Renseigne FC max et FC repos</td></tr>`)+"</tbody>";
+}
+$("refs").addEventListener("click",e=>{const del=e.target.closest("[data-del]");
+ if(del){e.preventDefault();S.refs=S.refs.filter(r=>r.id!==del.dataset.del);if(!S.refs.find(r=>r.id===S.sel))S.sel=S.refs[0]?.id;save();renderPerf();renderChips();return}});
+$("refs").addEventListener("change",e=>{if(e.target.name==="ref"){S.sel=e.target.value;save();renderPerf()}});
+
+/* ---------- Séances tab ---------- */
+S.fcthr??=181;S.sessions??=[];
+const curV=()=>{const r=curRef();return r?refVdot(r):45};
+const ZONES={
+ E:{l:"E · Endurance",f:V=>paceOfVO2(V*0.66)},
+ M:{l:"M · Marathon",f:V=>predict(42195,V)/42.195},
+ T:{l:"T · Seuil",f:V=>paceOfVO2(V*0.88)},
+ I:{l:"I · Intervalles",f:V=>paceOfVO2(V*0.99)},
+ R:{l:"R · Répétitions",f:V=>paceOfVO2(V*0.99)-10},
+ S3:{l:"Sub-T court (15 km)",f:V=>predict(15000,V)/15},
+ S6:{l:"Sub-T moyen (semi)",f:V=>predict(21097.5,V)/21.0975},
+ S10:{l:"Sub-T long (30 km)",f:V=>predict(30000,V)/30}};
+const KINDS=[["warm","Échauffement"],["rep","Répétitions"],["steady","Bloc continu"],["cool","Retour au calme"]];
+const opts=(list,v)=>list.map(([k,l])=>`<option value="${k}"${k==v?" selected":""}>${l}</option>`).join("");
+const dur=v=>String(v).includes(":")?parseT(v):parseFloat(String(v).replace(",","."))*60;
+const fnum=v=>parseFloat(String(v).replace(",","."));
+const st=(k,o={})=>Object.assign({k,n:1,v:k==="rep"?"3":"15",u:"min",tm:"zone",tv:k==="rep"?"T":"E",rv:"60",ru:"s",rm:"jog"},o);
+const TPL={
+ ns3:{name:"Sub-T 10 × 3 min",steps:[st("warm"),st("rep",{n:10,v:"3",tv:"S3",rm:"stand"}),st("cool",{v:"10"})]},
+ ns1k:{name:"Sub-T 10 × 1 km",steps:[st("warm"),st("rep",{n:10,v:"1",u:"km",tv:"S3",rm:"stand"}),st("cool",{v:"10"})]},
+ ns6:{name:"Sub-T 5 × 6 min",steps:[st("warm"),st("rep",{n:5,v:"6",tv:"S6",rm:"stand"}),st("cool",{v:"10"})]},
+ ns2k:{name:"Sub-T 5 × 2 km",steps:[st("warm"),st("rep",{n:5,v:"2",u:"km",tv:"S6",rm:"stand"}),st("cool",{v:"10"})]},
+ ns10:{name:"Sub-T 3 × 10 min",steps:[st("warm"),st("rep",{n:3,v:"10",tv:"S10",rv:"90",rm:"stand"}),st("cool",{v:"10"})]},
+ i400:{name:"VMA 12 × 400 m",steps:[st("warm",{v:"20"}),st("rep",{n:12,v:"400",u:"m",tv:"I",rv:"200",ru:"m"}),st("cool",{v:"10"})]},
+ i1000:{name:"VMA 5 × 1000 m",steps:[st("warm",{v:"20"}),st("rep",{n:5,v:"1",u:"km",tv:"I",rv:"2:30",ru:"min"}),st("cool",{v:"10"})]},
+ t3x10:{name:"Seuil 3 × 10 min",steps:[st("warm",{v:"20"}),st("rep",{n:3,v:"10",tv:"T",rv:"2",ru:"min"}),st("cool",{v:"10"})]},
+ tcont:{name:"Seuil continu 20 min",steps:[st("warm",{v:"20"}),st("steady",{v:"20",tv:"T"}),st("cool",{v:"10"})]}};
+let cur=structuredClone(TPL.ns3);
+$("se-tpl").innerHTML=`<option value="">Charger…</option>`+Object.entries(TPL).map(([k,t])=>`<option value="${k}">${t.name}</option>`).join("");
+$("se-tpl").addEventListener("change",e=>{const t=TPL[e.target.value];if(t){cur=structuredClone(t);renderSteps()}e.target.value=""});
+
+function tgtPace(s,V){
+ if(s.tm==="zone")return (ZONES[s.tv]||ZONES.E).f(V);
+ if(s.tm==="pace")return parseT(s.tv);
+ const frac=(fnum(s.tv)/S.fcmax*100-37)/64;              // Swain : %FCmax = 0,64·%VO2max + 37
+ return frac>0.3?paceOfVO2(V*Math.min(frac,1.05)):NaN;
+}
+function calc(s,V){
+ const p=tgtPace(s,V),n=s.k==="rep"?Math.max(1,parseInt(s.n)||1):1;let wt,wd;
+ if(s.u==="min"){wt=dur(s.v);wd=wt/p*1000}else{wd=fnum(s.v)*(s.u==="km"?1000:1);wt=wd*p/1000}
+ let rt=0,rd=0;
+ if(s.k==="rep"&&n>1){const rp=s.rm==="jog"?paceOfVO2(V*0.58):s.rm==="walk"?600:Infinity;
+  if(s.ru==="m"){rd=fnum(s.rv);rt=isFinite(rp)?rd*rp/1000:0;if(!isFinite(rp))rd=0}
+  else{rt=s.ru==="s"?fnum(s.rv):dur(s.rv);rd=isFinite(rp)?rt/rp*1000:0}
+  rt*=n-1;rd*=n-1}
+ return{p,n,wt,wd,rt,rd,T:wt*n+rt,D:wd*n+rd,eff:s.k==="rep"||s.k==="steady"};
+}
+function stepHTML(s,i){
+ const zoneSel=`<select data-f="tv">${opts(Object.entries(ZONES).map(([k,z])=>[k,z.l]),s.tv)}</select>`;
+ return`<div class="step${s.k==="rep"||s.k==="steady"?" eff":""}" data-i="${i}">
+ <div class="row">
+  <label style="width:175px">Bloc<select data-f="k">${opts(KINDS,s.k)}</select></label>
+  ${s.k==="rep"?`<label class="w-xs">Nombre<input data-f="n" inputmode="numeric" value="${s.n}"></label>`:""}
+  <label class="w-xs">${s.k==="rep"?"Effort":"Durée"}<input data-f="v" value="${s.v}"></label>
+  <label class="w-xs">Unité<select data-f="u">${opts([["min","min"],["km","km"],["m","m"]],s.u)}</select></label>
+  <label class="w-s">Cible<select data-f="tm">${opts([["zone","Zone"],["pace","Allure"],["hr","FC"]],s.tm)}</select></label>
+  ${s.tm==="zone"?`<label style="flex:1;min-width:150px">Zone${zoneSel}</label>`:`<label class="w-s">${s.tm==="pace"?"min/km":"bpm"}<input data-f="tv" value="${s.tv}"></label>`}
+ </div>
+ ${s.k==="rep"?`<div class="row rec">
+  <label class="w-xs">Récup<input data-f="rv" value="${s.rv}"></label>
+  <label class="w-xs">Unité<select data-f="ru">${opts([["s","s"],["min","min"],["m","m"]],s.ru)}</select></label>
+  <label class="w-s">Mode<select data-f="rm">${opts([["jog","Trot"],["walk","Marche"],["stand","Arrêt"]],s.rm)}</select></label>
+ </div>`:""}
+ <div class="step-foot"><span data-out></span>
+  <span class="acts"><button data-act="up" aria-label="Monter">↑</button><button data-act="down" aria-label="Descendre">↓</button><button data-act="dup" aria-label="Dupliquer">⧉</button><button data-act="del" aria-label="Supprimer">×</button></span></div>
+</div>`}
+function renderSteps(){$("se-name").value=cur.name;$("steps").innerHTML=cur.steps.map(stepHTML).join("");recompute()}
+function describe(s,c){
+ const base=`${s.k==="rep"?c.n+" × ":""}${s.u==="min"?fmt(dur(s.v)):s.u==="km"?num(fnum(s.v),2).replace(/,?0+$/,"")+" km":fnum(s.v)+" m"}`;
+ const rec=s.k==="rep"&&c.n>1?` · récup ${s.ru==="m"?fnum(s.rv)+" m":fmt(s.ru==="s"?fnum(s.rv):dur(s.rv))} ${({jog:"trot",walk:"marche",stand:"arrêt"})[s.rm]}`:"";
+ return{base,rec};
+}
+function recompute(){
+ const V=curV();const r=curRef();$("se-ref").textContent=r?`${r.label} · VDOT ${num(V)}`:"aucune";
+ let T=0,D=0,E=0,ED=0;const segs=[];
+ cur.steps.forEach((s,i)=>{const c=calc(s,V),el=document.querySelector(`.step[data-i="${i}"] [data-out]`);
+  const ok=isFinite(c.T)&&isFinite(c.D);
+  if(el)el.innerHTML=ok?`<b>${fmt(c.p)}/km</b> · ${fmt(c.T)} · ${num(c.D/1000,2)} km${s.k==="rep"?` · ${fmt(c.wt)} ou ${Math.round(c.wd)} m par rép.`:""}`:"Valeur invalide";
+  if(!ok)return;T+=c.T;D+=c.D;if(c.eff){E+=c.wt*c.n;ED+=c.wd*c.n}
+  const h=Math.max(.15,Math.min(1,(vo2At(60000/c.p)/V-.45)/.6));
+  for(let k=0;k<c.n;k++){segs.push({t:c.wt,h,e:c.eff});if(s.k==="rep"&&k<c.n-1&&c.rt>0)segs.push({t:c.rt/(c.n-1),h:s.rm==="stand"?.04:.12,e:false})}});
+ $("se-stats").innerHTML=`
+  <div class="stat"><div class="k">Durée</div><div class="n">${fmt(T)}</div></div>
+  <div class="stat"><div class="k">Distance</div><div class="n">${num(D/1000,2)}</div><div class="s">km</div></div>
+  <div class="stat"><div class="k">Effort</div><div class="n">${fmt(E)}</div><div class="s">${num(ED/1000,2)} km</div></div>
+  <div class="stat"><div class="k">Allure moy.</div><div class="n">${D?fmt(T/(D/1000)):"–"}</div><div class="s">/km</div></div>`;
+ $("se-prof").innerHTML=segs.map(g=>`<i class="${g.e?"e":""}" style="flex:${g.t} 0 0;height:${Math.round(g.h*100)}%"></i>`).join("");
+ renderSaved();
+}
+$("steps").addEventListener("input",e=>{const f=e.target.dataset.f,box=e.target.closest(".step");if(!f||!box)return;
+ const s=cur.steps[+box.dataset.i];s[f]=e.target.value;
+ if(f==="tm")s.tv=s.tm==="zone"?"E":s.tm==="pace"?"5:00":"150";
+ if(f==="k"&&s.k==="rep"&&s.n<2)s.n=5;
+ f==="k"||f==="tm"?renderSteps():recompute()});
+$("steps").addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;const i=+b.closest(".step").dataset.i,a=b.dataset.act,L=cur.steps;
+ if(a==="del")L.splice(i,1);else if(a==="dup")L.splice(i+1,0,structuredClone(L[i]));
+ else{const j=a==="up"?i-1:i+1;if(j<0||j>=L.length)return;[L[i],L[j]]=[L[j],L[i]]}renderSteps()});
+document.querySelector("[data-add]").parentElement.addEventListener("click",e=>{const k=e.target.dataset.add;if(!k)return;
+ const L=cur.steps,ci=L.findIndex(s=>s.k==="cool");const ns=st(k,k==="rep"?{n:5}:k==="cool"?{v:"10"}:{});
+ k!=="cool"&&ci>=0?L.splice(ci,0,ns):L.push(ns);renderSteps()});
+$("se-name").addEventListener("input",e=>cur.name=e.target.value);
+$("se-save").addEventListener("click",()=>{const name=cur.name.trim()||"Séance";cur.name=name;
+ const i=S.sessions.findIndex(x=>x.name===name),item={name,steps:structuredClone(cur.steps)};
+ i>=0?S.sessions[i]=item:S.sessions.unshift(item);save();renderSaved();toast("Séance enregistrée")});
+function summaryText(){const V=curV();
+ return cur.name+"\n"+cur.steps.map(s=>{const c=calc(s,V),d=describe(s,c);return`- ${KINDS.find(k=>k[0]===s.k)[1]} : ${d.base} @ ${fmt(c.p)}/km${d.rec}`}).join("\n")+
+ `\nTotal ≈ ${$("se-stats").querySelector(".n").textContent} · ${num(cur.steps.reduce((a,s)=>a+(calc(s,V).D||0),0)/1000,1)} km`}
+$("se-copy").addEventListener("click",()=>{const t=summaryText();
+ navigator.clipboard?.writeText(t).then(()=>toast("Résumé copié"),()=>toast("Copie refusée par le navigateur"))});
+function renderSaved(){$("se-saved").innerHTML=S.sessions.length?S.sessions.map((x,i)=>`<div><span>${x.name}</span><span class="acts"><button data-load="${i}">Ouvrir</button><button data-sdel="${i}" aria-label="Supprimer">×</button></span></div>`).join(""):`<p class="note" style="margin:0">Aucune séance enregistrée.</p>`}
+$("se-saved").addEventListener("click",e=>{const l=e.target.dataset.load,d=e.target.dataset.sdel;
+ if(l!=null){cur=structuredClone(S.sessions[+l]);renderSteps()}if(d!=null){S.sessions.splice(+d,1);save();renderSaved()}});
+
+/* Norwegian */
+$("p-thr").value=S.fcthr;$("p-thr").addEventListener("input",e=>{S.fcthr=+e.target.value||0;save();renderNS()});
+function renderNS(){const V=curV();
+ const rows=[["Court","10 × 3 min · ou 10 × 1 km","S3",3,"ns3","ns1k"],["Moyen","5 × 6 min · ou 5 × 2 km","S6",5,"ns6","ns2k"],["Long","3 × 10 min · ou 3 × 3 km","S10",7,"ns10",null]];
+ $("ns").innerHTML=`<thead><tr><th>Format</th><th>Séance type</th><th>/km</th><th>/400 m</th><th>FC max</th><th></th></tr></thead><tbody>`+
+ rows.map(r=>{const p=ZONES[r[2]].f(V);return`<tr><td>${r[0]}</td><td style="font-family:var(--f-body)">${r[1]}</td><td>${fmt(p)}</td><td>${fmt(p*.4,1)}</td><td>${S.fcthr?"≤ "+(S.fcthr-r[3]):"–"}</td>
+  <td><button class="chip" data-ns="${r[4]}">Charger</button></td></tr>`}).join("")+"</tbody>";}
+$("ns").addEventListener("click",e=>{const k=e.target.dataset.ns;if(!k)return;cur=structuredClone(TPL[k]);renderSteps();$("steps").scrollIntoView({behavior:"smooth",block:"start"})});
+
+
+
+/* ---------- Garmin : import & analyse ---------- */
+const G={acts:[],db:null};
+const FIT_EPOCH=631065600;
+/* IndexedDB */
+function gDB(){return G.db||(G.db=new Promise((res,rej)=>{const r=indexedDB.open("foulee",1);r.onupgradeneeded=()=>r.result.createObjectStore("acts",{keyPath:"id"});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))}
+async function gTx(mode,fn){const db=await gDB();return new Promise((res,rej)=>{const tx=db.transaction("acts",mode),st=tx.objectStore("acts");const out=fn(st);tx.oncomplete=()=>res(out?.result??out);tx.onerror=()=>rej(tx.error)})}
+const gAll=()=>gTx("readonly",st=>st.getAll());
+const gPut=a=>gTx("readwrite",st=>{a.forEach(x=>st.put(x))});
+const gDel=id=>gTx("readwrite",st=>st.delete(id));
+const gClear=()=>gTx("readwrite",st=>st.clear());
+
+/* FIT */
+function parseFIT(buf){
+ const v=new DataView(buf),hs=v.getUint8(0);
+ if(String.fromCharCode(v.getUint8(8),v.getUint8(9),v.getUint8(10),v.getUint8(11))!==".FIT")throw new Error("pas un fichier FIT");
+ const end=Math.min(hs+v.getUint32(4,true),buf.byteLength);let p=hs,lastTs=0;const defs={},recs=[],sess=[];
+ const SZ={0:1,1:1,2:1,0x83:2,0x84:2,0x85:4,0x86:4,0x88:4,0x89:8,0x0A:1,0x8B:2,0x8C:4,0x0D:1};
+ function field(f,le){const t=f.t;if(SZ[t]!==f.s)return null;let x;
+  switch(t){case 0:case 2:case 0x0D:x=v.getUint8(p);return x===0xFF?null:x;case 0x0A:x=v.getUint8(p);return x||null;case 1:x=v.getInt8(p);return x===0x7F?null:x;
+   case 0x83:x=v.getInt16(p,le);return x===0x7FFF?null:x;case 0x84:x=v.getUint16(p,le);return x===0xFFFF?null:x;case 0x8B:x=v.getUint16(p,le);return x||null;
+   case 0x85:x=v.getInt32(p,le);return x===0x7FFFFFFF?null:x;case 0x86:x=v.getUint32(p,le);return x===0xFFFFFFFF?null:x;case 0x8C:x=v.getUint32(p,le);return x||null;
+   case 0x88:x=v.getFloat32(p,le);return isFinite(x)?x:null;case 0x89:x=v.getFloat64(p,le);return isFinite(x)?x:null}return null}
+ function data(def){const o={};for(const f of def.fields){o[f.n]=field(f,def.le);p+=f.s}p+=def.dev;return o}
+ function handle(g,o){if(g===20)recs.push(o);else if(g===18)sess.push(o)}
+ while(p<end){const h=v.getUint8(p++);
+  if(h&0x80){const def=defs[(h>>5)&3];if(!def)break;const off=h&0x1F;let ts=(lastTs&~0x1F)+off;if(off<(lastTs&0x1F))ts+=0x20;lastTs=ts;const o=data(def);o[253]??=ts;handle(def.g,o);continue}
+  const loc=h&0x0F;
+  if(h&0x40){p++;const le=v.getUint8(p++)===0,g=v.getUint16(p,le);p+=2;const nf=v.getUint8(p++),fields=[];
+   for(let i=0;i<nf;i++){fields.push({n:v.getUint8(p),s:v.getUint8(p+1),t:v.getUint8(p+2)});p+=3}
+   let dev=0;if(h&0x20){const nd=v.getUint8(p++);for(let i=0;i<nd;i++){dev+=v.getUint8(p+1);p+=3}}
+   defs[loc]={g,le,fields,dev}}
+  else{const def=defs[loc];if(!def)break;const o=data(def);if(o[253]!=null)lastTs=o[253];handle(def.g,o)}}
+ const pts=recs.filter(r=>r[253]!=null).map(r=>({t:r[253]+FIT_EPOCH,d:r[5]!=null?r[5]/100:null,hr:r[3],alt:r[78]!=null?r[78]/5-500:r[2]!=null?r[2]/5-500:null,
+  lat:r[0]!=null?r[0]*180/2**31:null,lon:r[1]!=null?r[1]*180/2**31:null}));
+ const s=sess[0]||{};
+ return build(pts,{start:s[2]!=null?s[2]+FIT_EPOCH:null,dist:s[9]!=null?s[9]/100:null,timer:s[8]!=null?s[8]/1000:null,elapsed:s[7]!=null?s[7]/1000:null,
+  avgHr:s[16],maxHr:s[17],ascent:s[22],sport:s[5]===1?"run":s[5]!=null?"other":"run"});
+}
+/* GPX / TCX */
+function parseXML(txt){
+ const doc=new DOMParser().parseFromString(txt,"application/xml"),q=(el,n)=>el.getElementsByTagNameNS("*",n)[0]?.textContent;
+ let nodes=[...doc.getElementsByTagNameNS("*","trkpt")],tcx=false;
+ if(!nodes.length){nodes=[...doc.getElementsByTagNameNS("*","Trackpoint")];tcx=true}
+ const pts=nodes.map(n=>{const t=Date.parse(q(n,"time")||q(n,"Time"))/1000;
+  const lat=tcx?+q(n,"LatitudeDegrees"):+n.getAttribute("lat"),lon=tcx?+q(n,"LongitudeDegrees"):+n.getAttribute("lon");
+  const hr=+(tcx?n.getElementsByTagNameNS("*","HeartRateBpm")[0]?.textContent:q(n,"hr"))||null;
+  return{t,lat:isFinite(lat)?lat:null,lon:isFinite(lon)?lon:null,hr,alt:+(q(n,"ele")||q(n,"AltitudeMeters"))||null,d:tcx&&q(n,"DistanceMeters")?+q(n,"DistanceMeters"):null}}).filter(x=>isFinite(x.t));
+ const sp=(doc.getElementsByTagNameNS("*","Activity")[0]?.getAttribute("Sport")||q(doc,"type")||"run").toLowerCase();
+ return build(pts,{sport:/run|course/.test(sp)?"run":"other"});
+}
+/* construction d'une activité à partir des points */
+const hv=(a,b)=>{const r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lon-a.lon)*r,h=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*6371000*Math.asin(Math.sqrt(h))};
+function build(pts,meta){
+ if(pts.length<10)throw new Error("trop peu de points");
+ pts.sort((a,b)=>a.t-b.t);
+ let acc=0;for(let i=0;i<pts.length;i++){const x=pts[i];
+  if(x.d==null){if(i&&x.lat!=null&&pts[i-1].lat!=null)acc+=hv(pts[i-1],x);x.d=acc}else acc=x.d}
+ // flux échantillonnés toutes les 5 s
+ const st={t:[],d:[],hr:[],alt:[]},t0=pts[0].t;let lastK=-1e9;
+ for(const x of pts){if(x.t-lastK>=5){st.t.push(Math.round(x.t-t0));st.d.push(Math.round(x.d));st.hr.push(x.hr||0);st.alt.push(x.alt!=null?Math.round(x.alt*10)/10:null);lastK=x.t}}
+ // temps en mouvement, FC moyenne, D+
+ let mov=0,hrS=0,hrT=0,up=0,ref=null,mx=0;
+ for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],dt=b.t-a.t,dd=b.d-a.d;
+  if(dt>0&&dt<30&&dd/dt>0.5){mov+=dt;if(b.hr){hrS+=b.hr*dt;hrT+=dt}}
+  if(b.hr>mx)mx=b.hr;
+  if(b.alt!=null){if(ref==null)ref=b.alt;else if(b.alt-ref>=2){up+=b.alt-ref;ref=b.alt}else if(ref-b.alt>=2)ref=b.alt}}
+ const start=meta.start||pts[0].t,dist=meta.dist||pts.at(-1).d,timer=meta.timer||mov||(pts.at(-1).t-t0);
+ return{id:`${Math.round(start)}-${Math.round(dist)}`,start:start*1000,sport:meta.sport||"run",dist,timer,
+  elapsed:meta.elapsed||pts.at(-1).t-t0,avgHr:meta.avgHr||(hrT?Math.round(hrS/hrT):null),maxHr:meta.maxHr||mx||null,ascent:meta.ascent??(ref!=null?Math.round(up):null),s:st}
+}
+async function readFile(f){
+ const n=f.name.toLowerCase();
+ if(n.endsWith(".fit"))return[parseFIT(await f.arrayBuffer())];
+ if(n.endsWith(".gpx")||n.endsWith(".tcx"))return[parseXML(await f.text())];
+ if(n.endsWith(".zip")){await loadJSZip();const z=await JSZip.loadAsync(f),out=[];
+  for(const e of Object.values(z.files)){if(e.dir)continue;const en=e.name.toLowerCase();
+   try{if(en.endsWith(".fit"))out.push(parseFIT(await e.async("arraybuffer")));else if(en.endsWith(".gpx")||en.endsWith(".tcx"))out.push(parseXML(await e.async("string")));
+    else if(en.endsWith(".zip"))out.push(...await readFile(new File([await e.async("blob")],e.name)))}catch(err){}}
+  return out}
+ throw new Error("format non reconnu");
+}
+let jszipP;
+function loadJSZip(){return jszipP||(jszipP=new Promise((res,rej)=>{if(window.JSZip)return res();const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";s.onload=res;s.onerror=()=>{jszipP=null;rej(new Error("JSZip indisponible"))};document.head.append(s)}))}
+async function gImport(files){
+ files=[...files];if(!files.length)return;let ok=0,ko=0,skip=0;const out=[];
+ for(let i=0;i<files.length;i++){$("g-status").textContent=`Lecture ${i+1}/${files.length} : ${files[i].name}`;
+  try{const got=await readFile(files[i]);if(!got.length)throw 0;for(const a of got){if(G.acts.some(x=>x.id===a.id)||out.some(x=>x.id===a.id))skip++;else{out.push(a);ok++}}}catch(e){ko++;if(e?.message==="JSZip indisponible")$("g-status").dataset.zip=1}}
+ if(out.length){await gPut(out);G.acts.push(...out)}
+ $("g-status").textContent=`${ok} activité${ok>1?"s":""} importée${ok>1?"s":""}${skip?` · ${skip} déjà présente${skip>1?"s":""}`:""}${ko?` · ${ko} fichier${ko>1?"s":""} illisible${ko>1?"s":""}`:""}${$("g-status").dataset.zip?" (lecture des .zip impossible hors connexion)":""}`;delete $("g-status").dataset.zip;
+ gRender();
+}
+
+/* ---------- analyses ---------- */
+const DAY=864e5;
+const runs=()=>G.acts.filter(a=>a.sport==="run").sort((a,b)=>b.start-a.start);
+const hrr=x=>(x-S.fcrest)/(S.fcmax-S.fcrest);
+function zoneTimes(a){const z=[0,0,0,0,0],{t,hr}=a.s;for(let i=1;i<t.length;i++){const dt=t[i]-t[i-1];if(dt>30||!hr[i])continue;const r=hrr(hr[i]);const k=r<.6?0:r<.7?1:r<.8?2:r<.9?3:4;z[k]+=dt}return z}
+const ef=a=>a.avgHr?(a.dist/(a.timer/60))/a.avgHr:null;
+const isEasy=a=>a.avgHr&&hrr(a.avgHr)<.75&&a.timer>=1200&&kind(a)!=="Qualité";
+function kind(a){const z=zoneTimes(a),tot=z.reduce((x,y)=>x+y,0)||1;if((z[3]+z[4])/tot>=.2)return"Qualité";if(a.dist>=11000)return"Longue";return"Endurance"}
+function decoupling(a){if(a.timer<2700)return null;const{t,d,hr}=a.s,half=t.at(-1)/2;let h=[[0,0,0],[0,0,0]];
+ for(let i=1;i<t.length;i++){const dt=t[i]-t[i-1];if(dt>30||!hr[i])continue;const k=t[i]<half?0:1;h[k][0]+=d[i]-d[i-1];h[k][1]+=dt;h[k][2]+=hr[i]*dt}
+ if(!h[0][1]||!h[1][1])return null;const e=k=>(h[k][0]/h[k][1])/(h[k][2]/h[k][1]);return Math.round((e(0)-e(1))/e(0)*1000)/10||0}
+function bestEffort(a,D){const{t,d}=a.s;let i=0,best=Infinity;
+ for(let j=1;j<d.length;j++){while(i+1<j&&d[j]-d[i+1]>=D)i++;const dd=d[j]-d[i];if(dd>=D){const tt=(t[j]-t[i])*D/dd;if(tt<best)best=tt}}return best}
+const weekStart=ms=>{const d=new Date(ms);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()};
+const dfmt=ms=>new Date(ms).toLocaleDateString("fr-FR",{day:"2-digit",month:"short",year:"2-digit"});
+const pace=a=>a.timer/(a.dist/1000);
+
+/* ---------- graphiques (SVG) ---------- */
+function bars(el,data){ // data:[{x,label,v,tip}]
+ const W=560,H=200,L0=34,B=22,T=10,mx=Math.max(10,...data.map(d=>d.v))*1.1,bw=(W-L0)/data.length,y=v=>H-B-(v/mx)*(H-B-T);
+ const step=mx>60?20:mx>30?10:5;let g="";for(let v=0;v<=mx;v+=step)g+=`<line x1="${L0}" x2="${W}" y1="${y(v)}" y2="${y(v)}" class="gl"/><text x="${L0-6}" y="${y(v)+3}" text-anchor="end">${v}</text>`;
+ const b=data.map((d,i)=>{const x=L0+i*bw+2,w=bw-4,h=H-B-y(d.v);
+  return`<g data-tip="${d.tip}"><rect x="${L0+i*bw}" y="${T}" width="${bw}" height="${H-B-T}" fill="transparent"/>${d.v>0?`<path d="M${x},${H-B}V${y(d.v)+Math.min(4,h)}q0,-4 4,-4h${w-8}q4,0 4,4V${H-B}Z" class="${d.cur?"bar cur":"bar"}"/>`:""}${i%2===data.length%2?"":`<text x="${x+w/2}" y="${H-6}" text-anchor="middle">${d.label}</text>`}</g>`}).join("");
+ el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Volume hebdomadaire">${g}${b}</svg>`}
+function efChart(el,pts){ // pts:[{x(ms),v,tip}] triés
+ const W=560,H=200,L0=40,B=22,T=10;if(pts.length<2){el.innerHTML='<p class="muted">Il faut au moins 2 sorties faciles avec FC.</p>';return}
+ const x0=pts[0].x,x1=pts.at(-1).x||x0+1,lo=Math.min(...pts.map(p=>p.v))*.97,hi=Math.max(...pts.map(p=>p.v))*1.03;
+ const X=x=>L0+(x-x0)/((x1-x0)||1)*(W-L0-8),Y=v=>H-B-(v-lo)/(hi-lo)*(H-B-T);
+ let g="";for(let k=0;k<=3;k++){const v=lo+(hi-lo)*k/3;g+=`<line x1="${L0}" x2="${W}" y1="${Y(v)}" y2="${Y(v)}" class="gl"/><text x="${L0-6}" y="${Y(v)+3}" text-anchor="end">${num(v,2)}</text>`}
+ g+=`<text x="${L0}" y="${H-6}">${dfmt(x0)}</text><text x="${W-8}" y="${H-6}" text-anchor="end">${dfmt(x1)}</text>`;
+ const roll=pts.map((p,i)=>{const w=pts.slice(Math.max(0,i-4),i+1);return[X(p.x),Y(w.reduce((s,q)=>s+q.v,0)/w.length)]});
+ const dots=pts.map(p=>`<g data-tip="${p.tip}"><circle cx="${X(p.x)}" cy="${Y(p.v)}" r="10" fill="transparent"/><circle cx="${X(p.x)}" cy="${Y(p.v)}" r="4" class="dot"/></g>`).join("");
+ el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Efficacité aérobie">${g}<polyline points="${roll.map(r=>r.join(",")).join(" ")}" class="trend"/>${dots}</svg>`}
+
+/* ---------- rendu ---------- */
+function gRender(){
+ const R=runs(),has=G.acts.length>0;$("g-empty").hidden=has;$("g-body").hidden=!has;if(!has)return;
+ const now=Date.now(),km=(from,to)=>R.filter(a=>a.start>=from&&a.start<to).reduce((s,a)=>s+a.dist,0)/1000;
+ const acute=km(now-7*DAY,now),chronic=km(now-28*DAY,now)/4,acwr=chronic?acute/chronic:null;
+ const easy=R.filter(isEasy),efNow=easy.filter(a=>a.start>now-42*DAY),efPrev=easy.filter(a=>a.start<=now-42*DAY&&a.start>now-84*DAY);
+ const mean=l=>l.reduce((s,a)=>s+ef(a),0)/l.length,efTr=efNow.length&&efPrev.length?(mean(efNow)/mean(efPrev)-1)*100:null;
+ let vb=null;for(const a of R.filter(a=>a.start>now-42*DAY))for(const D of [3000,5000,10000,21097.5]){const t=bestEffort(a,D);if(isFinite(t)){const v=vdot(D,t);if(!vb||v>vb.v)vb={v,D,t,a}}}
+ const acwrTag=acwr==null?"":acwr>1.5?'<span class="pill warn">risque</span>':acwr<.8?'<span class="pill">baisse</span>':'<span class="pill good">ok</span>';
+ $("g-stats").innerHTML=`
+  <div class="stat"><div class="k">Volume 4 semaines</div><div class="n">${num(chronic,1)}</div><div class="s">km/sem en moyenne · ${R.filter(a=>a.start>now-28*DAY).length} sorties</div></div>
+  <div class="stat"><div class="k">Charge 7 j / 28 j</div><div class="n">${acwr?num(acwr,2):"–"}</div><div class="s">${num(acute,1)} km cette semaine glissante ${acwrTag}</div></div>
+  <div class="stat"><div class="k">Efficacité aérobie</div><div class="n">${efTr==null?"–":(efTr>0?"+":"")+num(efTr,1)+" %"}</div><div class="s">6 dernières semaines vs 6 précédentes</div></div>
+  <div class="stat"><div class="k">VDOT entraînement</div><div class="n">${vb?num(vb.v):"–"}</div><div class="s">${vb?`${DIST.find(d=>d.m===vb.D)?.l||""} en ${fmt(vb.t)} le ${dfmt(vb.a.start)} · minimum`:"aucun effort ≥ 3 km"}</div></div>`;
+ // volume hebdo
+ const w0=weekStart(now),wk=[];for(let i=15;i>=0;i--){const s=w0-i*7*DAY,v=km(s,s+7*DAY),n=R.filter(a=>a.start>=s&&a.start<s+7*DAY).length;
+  wk.push({v,label:new Date(s).toLocaleDateString("fr-FR",{day:"numeric",month:"numeric"}),cur:i===0,tip:`Semaine du ${new Date(s).toLocaleDateString("fr-FR",{day:"numeric",month:"long"})} · ${num(v,1)} km · ${n} sortie${n>1?"s":""}`})}
+ bars($("g-week"),wk);
+ // EF
+ efChart($("g-ef"),easy.filter(a=>a.start>now-180*DAY).slice().reverse().map(a=>({x:a.start,v:ef(a),tip:`${dfmt(a.start)} · ${num(a.dist/1000,1)} km à ${fmt(pace(a))}/km · ${a.avgHr} bpm · EF ${num(ef(a),2)}`})));
+ // zones
+ const z=[0,0,0,0,0];R.filter(a=>a.start>now-28*DAY).forEach(a=>zoneTimes(a).forEach((v,i)=>z[i]+=v));const zt=z.reduce((a,b)=>a+b,0)||1;
+ const ZN=["Z1 · Récup","Z2 · Endurance","Z3 · Tempo","Z4 · Seuil","Z5 · VO2max"];
+ $("g-zones").innerHTML=z.map((v,i)=>`<div class="zrow" data-tip="${ZN[i]} · ${fmt(v)} · ${Math.round(v/zt*100)} %"><span>${ZN[i]}</span><div class="ztrack"><i style="width:${v/zt*100}%;background:color-mix(in oklab,var(--accent) ${30+i*17}%,var(--surface))"></i></div><b>${Math.round(v/zt*100)} %</b></div>`).join("");
+ // meilleurs efforts
+ const BE=[["1 km",1000],["3 km",3000],["5 km",5000],["10 km",10000],["Semi",21097.5]];
+ $("g-best").innerHTML=`<thead><tr><th>Distance</th><th>Temps</th><th>/km</th><th>Date</th><th>VDOT</th><th></th></tr></thead><tbody>`+BE.map(([l,D])=>{let b=null;
+  for(const a of R){const t=bestEffort(a,D);if(isFinite(t)&&(!b||t<b.t))b={t,a}}
+  return b?`<tr><td>${l}</td><td>${fmt(b.t)}</td><td>${fmt(b.t/(D/1000))}</td><td>${dfmt(b.a.start)}</td><td>${num(vdot(D,b.t))}</td><td><button class="chip" data-ref="${D}|${Math.round(b.t)}|${b.a.start}">Référence</button></td></tr>`:`<tr><td>${l}</td><td colspan="5" class="muted">–</td></tr>`}).join("")+"</tbody>";
+ // liste
+ const all=G.acts.slice().sort((a,b)=>b.start-a.start);
+ $("g-list").innerHTML=`<thead><tr><th>Date</th><th>Type</th><th>Distance</th><th>Durée</th><th>Allure</th><th>FC moy / max</th><th>D+</th><th>EF</th><th>Dérive</th><th></th></tr></thead><tbody>`+
+  all.map(a=>{const dc=a.sport==="run"?decoupling(a):null,e=ef(a);
+   return`<tr><td>${dfmt(a.start)}</td><td>${a.sport==="run"?kind(a):'<span class="muted">Autre sport</span>'}</td><td>${num(a.dist/1000,2)} km</td><td>${fmt(a.timer)}</td><td>${fmt(pace(a))}</td>
+   <td>${a.avgHr||"–"} / ${a.maxHr||"–"}</td><td>${a.ascent??"–"}</td><td>${e?num(e,2):"–"}</td><td>${dc==null?"–":`${num(dc,1)} %${dc>5?' <span class="pill warn">élevée</span>':""}`}</td>
+   <td><button class="x" data-gdel="${a.id}" aria-label="Supprimer">×</button></td></tr>`}).join("")+"</tbody>";
+}
+function coachText(){
+ const R=runs(),now=Date.now(),r=curRef();
+ const lines=[`PROFIL : 28 ans, FC max ${S.fcmax}, FC repos ${S.fcrest}, FC seuil ${S.fcthr}. Objectif 5 km < 20:00.`,
+  `Référence VDOT : ${r?`${r.label} → ${num(refVdot(r))}`:"–"}`,"","VOLUME HEBDO (km, plus ancien → récent) :"];
+ const w0=weekStart(now),wk=[];for(let i=11;i>=0;i--){const s=w0-i*7*DAY;wk.push(num(R.filter(a=>a.start>=s&&a.start<s+7*DAY).reduce((x,a)=>x+a.dist,0)/1000,1))}
+ lines.push(wk.join(" · "),"","SORTIES (récentes d'abord) : date | type | km | durée | allure | FC moy/max | D+ | EF | dérive | temps Z1-Z5 (%)");
+ R.slice(0,30).forEach(a=>{const z=zoneTimes(a),t=z.reduce((x,y)=>x+y,0)||1,dc=decoupling(a);
+  lines.push([dfmt(a.start),kind(a),num(a.dist/1000,2),fmt(a.timer),fmt(pace(a)),`${a.avgHr||"–"}/${a.maxHr||"–"}`,a.ascent??"–",ef(a)?num(ef(a),2):"–",dc==null?"–":num(dc,1)+"%",z.map(v=>Math.round(v/t*100)).join("/")].join(" | "))});
+ lines.push("","Analyse ma progression et la qualité de mon entraînement, et propose des ajustements.");
+ return lines.join("\n");
+}
+/* ---------- événements ---------- */
+$("g-pick").onclick=()=>$("g-file").click();
+$("g-file").onchange=e=>{gImport(e.target.files);e.target.value=""};
+const dz=$("g-drop");["dragenter","dragover"].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.add("over")}));
+["dragleave","drop"].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.remove("over")}));
+dz.addEventListener("drop",e=>gImport(e.dataTransfer.files));
+$("g-list").addEventListener("click",async e=>{const id=e.target.dataset.gdel;if(!id)return;await gDel(id);G.acts=G.acts.filter(a=>a.id!==id);gRender()});
+$("g-best").addEventListener("click",e=>{const v=e.target.dataset.ref;if(!v)return;const[D,t,st]=v.split("|").map(Number),d=DIST.find(x=>x.m===D);
+ const id="r"+Date.now();S.refs.unshift({id,type:"race",m:D,s:t,label:d?d.l:`${D/1000} km`,date:new Date(st).toLocaleDateString("fr-FR",{month:"short",year:"numeric"}),note:"Meilleur effort Garmin"});
+ S.sel=id;save();renderChips();renderPerf();toast("Ajouté et choisi comme référence")});
+$("g-coach").onclick=()=>{const t=coachText();navigator.clipboard?.writeText(t).then(()=>toast("Résumé copié : colle-le dans Claude"),()=>toast("Copie refusée par le navigateur"))};
+$("g-exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({v:1,acts:G.acts,hub:S})],{type:"application/json"}));
+ a.download=`foulee-sauvegarde-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
+$("g-imp").onclick=()=>$("g-impf").click();
+$("g-impf").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(j.hub){Object.assign(S,j.hub);save();renderChips();renderPerf()}
+ if(j.acts){await gPut(j.acts);G.acts=await gAll()}gRender();toast("Sauvegarde restaurée")}catch(err){toast("Fichier de sauvegarde illisible")}e.target.value=""};
+let wipeArm=0;$("g-wipe").onclick=async()=>{if(Date.now()-wipeArm>4000){wipeArm=Date.now();$("g-wipe").textContent="Confirmer l'effacement";setTimeout(()=>$("g-wipe").textContent="Tout effacer",4000);return}
+ await gClear();G.acts=[];$("g-wipe").textContent="Tout effacer";gRender();toast("Activités effacées")};
+/* infobulle */
+const tip=$("g-tip");
+$("v-garmin").addEventListener("pointermove",e=>{const t=e.target.closest("[data-tip]");if(!t){tip.hidden=true;return}tip.textContent=t.dataset.tip;tip.hidden=false;
+ const x=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8),y=e.clientY-tip.offsetHeight-12;tip.style.left=x+"px";tip.style.top=(y<8?e.clientY+16:y)+"px"});
+$("v-garmin").addEventListener("pointerleave",()=>tip.hidden=true);
+gAll().then(a=>{G.acts=a;gRender()}).catch(()=>{$("g-status").textContent="Stockage indisponible dans ce navigateur (navigation privée ?)"});
+
+/* ---------- Parcours ---------- */
+function initParcours(){
+if(typeof L==="undefined"){document.getElementById("map").innerHTML='<p class="hint" style="padding:20px">Carte indisponible : vérifie ta connexion.</p>';return}
+
+const $=id=>document.getElementById(id);
+const OSRM="https://routing.openstreetmap.de/routed-foot/route/v1/driving/";
+const toast=m=>{const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),2400)};
+const num=(x,d=2)=>x.toFixed(d).replace(".",",");
+const fmtT=s=>{s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return h?`${h}:${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`:`${m}:${String(r).padStart(2,"0")}`};
+const parseT=s=>{const p=String(s).trim().split(":").map(Number);return p.some(isNaN)?NaN:p.reduce((a,b)=>a*60+b,0)};
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- géométrie ---------- */
+const R=6371000,rad=x=>x*Math.PI/180,deg=x=>x*180/Math.PI;
+function hav(a,b){const dl=rad(b[0]-a[0]),dn=rad(b[1]-a[1]);const h=Math.sin(dl/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+function dest(p,d,brg){const la=rad(p[0]),lo=rad(p[1]),dr=d/R;const la2=Math.asin(Math.sin(la)*Math.cos(dr)+Math.cos(la)*Math.sin(dr)*Math.cos(brg));
+ const lo2=lo+Math.atan2(Math.sin(brg)*Math.sin(dr)*Math.cos(la),Math.cos(dr)-Math.sin(la)*Math.sin(la2));return[deg(la2),deg(lo2)]}
+const pathLen=c=>c.reduce((s,p,i)=>i?s+hav(c[i-1],p):0,0);
+function segDist(p,a,b){const k=Math.cos(rad(p[0]));const P=[p[1]*k,p[0]],A=[a[1]*k,a[0]],B=[b[1]*k,b[0]];
+ const dx=B[0]-A[0],dy=B[1]-A[1];const t=Math.max(0,Math.min(1,((P[0]-A[0])*dx+(P[1]-A[1])*dy)/(dx*dx+dy*dy||1)));return Math.hypot(P[0]-A[0]-t*dx,P[1]-A[1]-t*dy)}
+function rdp(pts,eps){if(pts.length<3)return pts;const tol=eps/111320;let i0=0,dm=0;
+ for(let i=1;i<pts.length-1;i++){const d=segDist(pts[i],pts[0],pts[pts.length-1]);if(d>dm){dm=d;i0=i}}
+ return dm>tol?rdp(pts.slice(0,i0+1),eps).slice(0,-1).concat(rdp(pts.slice(i0),eps)):[pts[0],pts[pts.length-1]]}
+
+/* ---------- carte ---------- */
+const base={
+ "Plan":L.tileLayer("https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png",{maxZoom:20,subdomains:"abc",attribution:"© OpenStreetMap France · © contributeurs OSM"}),
+ "OSM":L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© contributeurs OpenStreetMap"}),
+ "Chemins":L.tileLayer("https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png",{maxZoom:20,subdomains:"abc",attribution:"CyclOSM · © contributeurs OSM"}),
+ "Relief":L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,subdomains:"abc",attribution:"© OpenStreetMap, SRTM · © OpenTopoMap"})};
+const last=store.get("hf.view",{c:[46.6,2.4],z:6});
+const map=L.map("map").setView(last.c,last.z);base["Plan"].addTo(map);L.control.layers(base,null,{position:"topright"}).addTo(map);L.control.scale({imperial:false}).addTo(map);
+map.on("moveend",()=>{const c=map.getCenter();store.set("hf.view",{c:[c.lat,c.lng],z:map.getZoom()})});
+const accent=getComputedStyle(document.documentElement).getPropertyValue("--accent").trim()||"#2A4FD4";
+const line=L.polyline([],{color:accent,weight:6,opacity:.9,bubblingMouseEvents:false}).addTo(map);
+const markers=L.layerGroup().addTo(map),kms=L.layerGroup().addTo(map);
+
+/* ---------- état ---------- */
+let wps=[],coords=[],dist=0,mode="trace",follow=true,hist=[],loopStart=null,startMk=null,elev=null,reqId=0;
+const push=()=>{hist.push(JSON.stringify(wps));if(hist.length>80)hist.shift()};
+function setMode(m){mode=m;$("m-trace").setAttribute("aria-pressed",m==="trace");$("m-loop").setAttribute("aria-pressed",m==="loop");$("p-trace").hidden=m!=="trace";$("p-loop").hidden=m!=="loop"}
+$("m-trace").onclick=()=>setMode("trace");$("m-loop").onclick=()=>setMode("loop");
+$("follow").onchange=e=>{follow=e.target.checked;route()};
+
+function drawMarkers(){markers.clearLayers();const mini=wps.length>40;
+ wps.forEach((p,i)=>{const isStart=i===0,dup=i===wps.length-1&&i>0&&hav(p,wps[0])<5;if(dup)return;
+  const m=L.marker(p,{draggable:true,icon:L.divIcon({className:"",html:`<div class="wp${isStart?" start":""}${mini&&!isStart?" mini":""}"></div>`,iconSize:isStart?[20,20]:mini?[9,9]:[16,16]})});
+  m.on("dragend",e=>{push();const ll=e.target.getLatLng();wps[i]=[ll.lat,ll.lng];if(i===0&&wps.length>2&&hav(wps.at(-1),p)<5)wps[wps.length-1]=wps[0];route()});
+  m.on("click",()=>{const el=document.createElement("div");el.innerHTML=`<b>${isStart?"Départ":"Point "+i}</b><br><button style="margin-top:6px">Supprimer</button>`;
+   el.querySelector("button").onclick=()=>{push();wps.splice(i,1);map.closePopup();route()};m.bindPopup(el).openPopup()});
+  m.addTo(markers)})}
+function drawKms(){kms.clearLayers();let acc=0,next=1000;
+ for(let i=1;i<coords.length;i++){const d=hav(coords[i-1],coords[i]);while(acc+d>=next){const t=(next-acc)/d,a=coords[i-1],b=coords[i];
+   L.marker([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],{interactive:false,icon:L.divIcon({className:"",html:`<div class="km">${next/1000}</div>`,iconSize:[18,16]})}).addTo(kms);next+=1000}acc+=d}}
+
+let router=store.get("hf.router","paths");
+const syncRouter=v=>{router=v;$("router").value=$("router2").value=v;store.set("hf.router",v)};
+$("router").onchange=e=>{syncRouter(e.target.value);route()};$("router2").onchange=e=>syncRouter(e.target.value);syncRouter(router);
+async function brouter(pts,signal){
+ const url="https://brouter.de/brouter?lonlats="+pts.map(p=>`${p[1].toFixed(6)},${p[0].toFixed(6)}`).join("|")+"&profile=hiking-beta&alternativeidx=0&format=geojson";
+ const r=await fetch(url,{signal});if(!r.ok)throw new Error("HTTP "+r.status);const j=await r.json();const f=j.features?.[0];if(!f)throw new Error("vide");
+ const c=f.geometry.coordinates.map(c=>[c[1],c[0]]);return{coords:c,dist:+f.properties["track-length"]||pathLen(c)}}
+let warned=false;
+async function routeVia(pts,signal){
+ if(router==="paths"){try{return await brouter(pts,signal)}catch(e){if(e.name==="AbortError")throw e;if(!warned){toast("Routage chemins indisponible : bascule sur l'itinéraire direct");warned=true}}}
+ return osrm(pts,signal)}
+async function osrm(pts,signal){
+ const url=OSRM+pts.map(p=>`${p[1].toFixed(6)},${p[0].toFixed(6)}`).join(";")+"?overview=full&geometries=geojson&continue_straight=false";
+ const r=await fetch(url,{signal});if(!r.ok)throw new Error("HTTP "+r.status);const j=await r.json();if(j.code!=="Ok")throw new Error(j.code);
+ return{coords:j.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]),dist:j.routes[0].distance}}
+
+let rt,ctl;
+function route(){clearTimeout(rt);rt=setTimeout(doRoute,200);drawMarkers()}
+async function doRoute(){
+ const id=++reqId;ctl?.abort();
+ if(wps.length<2||!follow){coords=wps.slice();dist=pathLen(coords);render();return}
+ ctl=new AbortController();$("busy").hidden=false;
+ try{const r=await routeVia(wps,ctl.signal);if(id!==reqId)return;coords=r.coords;dist=r.dist}
+ catch(e){if(e.name==="AbortError")return;coords=wps.slice();dist=pathLen(coords);toast("Routage indisponible : tracé en ligne droite")}
+ finally{if(id===reqId)$("busy").hidden=true}
+ render()}
+function render(){line.setLatLngs(coords);drawKms();$("s-d").textContent=num(dist/1000);updTime();elev=null;$("s-e").textContent="–";$("prof").innerHTML="";clearTimeout(et);if(coords.length>1)et=setTimeout(loadElev,500);}
+function updTime(){const v=$("pace").value.trim(),p=parseT(v);$("s-t").textContent=v&&dist&&p>0?fmtT(dist/1000*p):"–";store.set("hf.pace",v)}
+$("pace").value=store.get("hf.pace","");
+$("pace").oninput=updTime;
+
+/* ---------- altitude (Open-Meteo) ---------- */
+let et;
+async function loadElev(){
+ const id=reqId,N=100,tot=pathLen(coords);if(tot<50)return;const cum=[0];for(let i=1;i<coords.length;i++)cum.push(cum[i-1]+hav(coords[i-1],coords[i]));
+ const S=[];let j=0;for(let k=0;k<N;k++){const t=tot*k/(N-1);while(j<cum.length-2&&cum[j+1]<t)j++;const f=(t-cum[j])/((cum[j+1]-cum[j])||1),a=coords[j],b=coords[j+1]||a;S.push([a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,t])}
+ try{const r=await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${S.map(s=>s[0].toFixed(5)).join(",")}&longitude=${S.map(s=>s[1].toFixed(5)).join(",")}`);
+  const e=(await r.json()).elevation;if(id!==reqId||!e)return;
+  let up=0,dn=0,ref=e[0];for(const v of e){if(v-ref>=2){up+=v-ref;ref=v}else if(ref-v>=2){dn+=ref-v;ref=v}}
+  $("s-e").textContent=Math.round(up);$("s-e2").textContent=`D+ m · D− ${Math.round(dn)}`;elev={e,S};drawProf()}
+ catch(err){$("s-e2").textContent="altitude indisponible"}}
+function drawProf(){const {e,S}=elev,W=320,H=90,pb=14,lo=Math.min(...e),hi=Math.max(...e),span=Math.max(hi-lo,20),tot=S.at(-1)[2];
+ const x=t=>t/tot*W,y=v=>H-pb-(v-lo)/span*(H-pb-14);const pts=e.map((v,i)=>`${x(S[i][2]).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+ $("prof").innerHTML=`<polygon points="0,${H-pb} ${pts} ${W},${H-pb}" fill="${accent}" fill-opacity=".14"/><polyline points="${pts}" fill="none" stroke="${accent}" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+ <line x1="0" x2="${W}" y1="${H-pb}" y2="${H-pb}" stroke="currentColor" stroke-opacity=".15"/><text x="2" y="10">${Math.round(hi)} m</text><text x="2" y="${H-pb-3}">${Math.round(lo)} m</text><text x="${W-2}" y="${H-2}" text-anchor="end">${num(tot/1000,1)} km</text>`}
+
+/* ---------- interactions carte ---------- */
+map.on("click",e=>{const p=[e.latlng.lat,e.latlng.lng];
+ if(mode==="loop"){setStart(p);return}
+ push();wps.push(p);route()});
+line.on("click",e=>{L.DomEvent.stopPropagation(e);if(mode!=="trace"||wps.length<2)return;const p=[e.latlng.lat,e.latlng.lng];let bi=0,bd=Infinity;
+ for(let i=0;i<wps.length-1;i++){const d=segDist(p,wps[i],wps[i+1]);if(d<bd){bd=d;bi=i}}push();wps.splice(bi+1,0,p);route()});
+$("undo").onclick=()=>{if(!hist.length)return;wps=JSON.parse(hist.pop());route()};
+$("clear").onclick=()=>{if(!wps.length)return;push();wps=[];route()};
+$("rev").onclick=()=>{push();wps.reverse();route()};
+$("close").onclick=()=>{if(wps.length<2)return;push();wps.push(wps[0].slice());route()};
+
+/* ---------- recherche ---------- */
+async function search(){const q=$("q").value.trim();if(!q)return;$("res").innerHTML='<span class="hint">Recherche…</span>';
+ try{const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=fr&q=${encodeURIComponent(q)}`);const j=await r.json();
+  $("res").innerHTML=j.length?"":'<span class="hint">Aucun résultat</span>';
+  j.forEach(x=>{const b=document.createElement("button");b.textContent=x.display_name;b.onclick=()=>{const p=[+x.lat,+x.lon];map.setView(p,15);if(mode==="loop")setStart(p);$("res").innerHTML=""};$("res").append(b)})}
+ catch(e){$("res").innerHTML='<span class="hint">Recherche indisponible</span>'}}
+$("go").onclick=search;$("q").onkeydown=e=>{if(e.key==="Enter")search()};
+$("me").onclick=()=>{if(!navigator.geolocation){toast("Géolocalisation non disponible");return}
+ navigator.geolocation.getCurrentPosition(pos=>{const p=[pos.coords.latitude,pos.coords.longitude];map.setView(p,15);if(mode==="loop"||!wps.length)setStart(p)},()=>toast("Position refusée ou indisponible"),{enableHighAccuracy:true,timeout:10000})};
+
+/* ---------- boucle auto ---------- */
+function setStart(p){loopStart=p;$("ls").value=`${p[0].toFixed(4)}, ${p[1].toFixed(4)}`;
+ startMk?.remove();startMk=L.marker(p,{icon:L.divIcon({className:"",html:'<div class="wp start"></div>',iconSize:[20,20]})}).addTo(map);
+ if(mode==="trace"&&!wps.length){startMk.remove();push();wps=[p];route()}}
+async function genLoop(){
+ if(!loopStart){toast("Choisis d'abord un point de départ");return}
+ const D=parseFloat($("ld").value.replace(",","."))*1000;if(!(D>=500&&D<=100000)){toast("Distance entre 0,5 et 100 km");return}
+ $("gen").disabled=$("gen2").disabled=true;$("busy").hidden=false;
+ const th=Math.random()*2*Math.PI,dir=Math.random()<.5?1:-1,nP=D>15000?4:3;let r=D/(2*Math.PI*1.3),best=null;
+ try{for(let it=0;it<4;it++){
+   const c=dest(loopStart,r,th),pts=[];for(let k=1;k<=nP;k++)pts.push(dest(c,r,th+Math.PI+dir*k*2*Math.PI/(nP+1)));
+   const all=[loopStart,...pts,loopStart],res=await routeVia(all);
+   if(!best||Math.abs(res.dist-D)<Math.abs(best.res.dist-D))best={all,res};
+   if(Math.abs(res.dist-D)/D<.04)break;r*=Math.max(.5,Math.min(1.8,D/res.dist))}
+  startMk?.remove();push();wps=best.all;follow=true;$("follow").checked=true;reqId++;coords=best.res.coords;dist=best.res.dist;drawMarkers();render();
+  map.fitBounds(line.getBounds(),{padding:[30,30]});toast(`Boucle de ${num(dist/1000,1)} km · modifiable en mode Tracé`)}
+ catch(e){toast("Routage indisponible, réessaie dans un instant")}
+ finally{$("gen").disabled=false;$("gen2").disabled=!best;$("busy").hidden=true}}
+$("gen").onclick=$("gen2").onclick=genLoop;
+
+/* ---------- GPX ---------- */
+const esc=s=>s.replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"})[c]);
+$("gpx").onclick=()=>{if(coords.length<2){toast("Trace d'abord un parcours");return}const n=$("name").value.trim()||"Parcours";
+ const xml=`<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Hub Foulée" xmlns="http://www.topografix.com/GPX/1/1">\n<metadata><name>${esc(n)}</name><time>${new Date().toISOString()}</time></metadata>\n<trk><name>${esc(n)}</name><type>running</type><trkseg>\n`+
+  coords.map(p=>`<trkpt lat="${p[0].toFixed(6)}" lon="${p[1].toFixed(6)}"></trkpt>`).join("\n")+`\n</trkseg></trk>\n</gpx>\n`;
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([xml],{type:"application/gpx+xml"}));a.download=n.replace(/[^\w\-àâçéèêëîïôûùüÿñæœ ]+/gi,"_")+".gpx";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
+$("imp").onclick=()=>$("file").click();
+$("file").onchange=async e=>{const f=e.target.files[0];if(!f)return;const doc=new DOMParser().parseFromString(await f.text(),"application/xml");
+ let pts=[...doc.querySelectorAll("trkpt")];if(!pts.length)pts=[...doc.querySelectorAll("rtept")];
+ const c=pts.map(p=>[+p.getAttribute("lat"),+p.getAttribute("lon")]).filter(p=>isFinite(p[0])&&isFinite(p[1]));
+ if(c.length<2){toast("Aucune trace lisible dans ce fichier");return}
+ push();wps=rdp(c,6);follow=false;$("follow").checked=false;setMode("trace");$("name").value=doc.querySelector("trk>name,metadata>name")?.textContent||f.name.replace(/\.gpx$/i,"");
+ route();setTimeout(()=>map.fitBounds(L.latLngBounds(c),{padding:[30,30]}),250);toast(`${wps.length} points importés · « Suivre routes » désactivé pour garder la trace`);e.target.value=""};
+
+/* ---------- parcours enregistrés ---------- */
+let saved=store.get("hf.routes",[]);
+function renderSaved(){$("saved").innerHTML=saved.map((r,i)=>`<div><span>${esc(r.name)} <span class="m">${num(r.dist/1000,1)} km</span></span><span class="acts"><button data-o="${i}">Ouvrir</button><button data-x="${i}" aria-label="Supprimer">×</button></span></div>`).join("")}
+$("save").onclick=()=>{if(wps.length<2){toast("Trace d'abord un parcours");return}const name=$("name").value.trim()||"Parcours";
+ const i=saved.findIndex(r=>r.name===name),it={name,wps,follow,dist,date:Date.now()};i>=0?saved[i]=it:saved.unshift(it);store.set("hf.routes",saved);renderSaved();toast("Parcours enregistré")};
+$("saved").onclick=e=>{const o=e.target.dataset.o,x=e.target.dataset.x;
+ if(o!=null){const r=saved[+o];push();wps=r.wps;follow=r.follow;$("follow").checked=follow;$("name").value=r.name;setMode("trace");route();setTimeout(()=>map.fitBounds(L.latLngBounds(wps),{padding:[30,30]}),250)}
+ if(x!=null){saved.splice(+x,1);store.set("hf.routes",saved);renderSaved()}};
+renderSaved();
+
+window.pcMap=map;
+}
+/* ---------- routing ---------- */
+const VIEWS=["vdot","allures","perf","seances","parcours","garmin"];
+function route(){const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"vdot";
+ VIEWS.forEach(x=>$("v-"+x).hidden=x!==v);
+ document.querySelectorAll("#nav a[href]").forEach(a=>a.getAttribute("href")==="#"+v?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current"));
+ if(v==="parcours"){if(!window._pcInit){window._pcInit=true;initParcours()}else window.pcMap?.invalidateSize()}}
+addEventListener("hashchange",route);
+
+renderChips();renderVdot();setConv("km");renderTarget();renderPerf();renderSteps();renderNS();route();
+const _rp=renderPerf;renderPerf=function(){_rp();if(typeof recompute==="function"){recompute();renderNS()}if(typeof gRender==="function")gRender()};
+</script>
+<script>if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
+</body>
+</html>
